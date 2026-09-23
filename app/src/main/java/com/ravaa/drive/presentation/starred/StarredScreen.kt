@@ -1,15 +1,52 @@
 package com.ravaa.drive.presentation.starred
 
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Menu
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.ravaa.drive.presentation.drive.DriveItemsList
 import com.ravaa.drive.presentation.drive.DriveViewModel
 
 @Composable
-fun StarredScreen(vm: DriveViewModel = hiltViewModel()) {
-    LaunchedEffect(Unit){ vm.load(null) }
-    Box(Modifier.fillMaxSize(), contentAlignment=Alignment.Center){ Text("Starred — filter isStarred=true") }
+fun StarredScreen(
+    vm: DriveViewModel = hiltViewModel(),
+    onMenu: () -> Unit = {},
+    nav: androidx.navigation.NavController? = null
+) {
+    val files by vm.files.collectAsState()
+    LaunchedEffect(Unit) { vm.loadStarred() }
+    Column(Modifier.fillMaxSize().padding(12.dp)) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            IconButton(onClick = onMenu, modifier = Modifier.size(40.dp)) {
+                Icon(Icons.Filled.Menu, "Menu", tint = Color.White)
+            }
+            Text("Starred", style = MaterialTheme.typography.titleSmall, color = Color.White)
+        }
+        DriveItemsList(
+            files,
+            "Belum ada yang di-star",
+            onItemClick = {
+                val file = it as? com.ravaa.drive.data.api.DriveFile ?: return@DriveItemsList
+                nav?.navigate(com.ravaa.drive.presentation.drive.viewerRoute(file, files))
+            },
+            imageLoader = vm.imageLoader,
+            thumbUrl = vm::thumbUrl
+        )
+    }
 }
